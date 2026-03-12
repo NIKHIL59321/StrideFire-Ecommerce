@@ -38,7 +38,10 @@ public class SecurityConfig {
 
         // ✅ Allow React frontend
         config.setAllowedOrigins(
-                List.of("http://localhost:5173"));
+                Arrays.asList(
+                        "http://localhost:5173",
+                        "https://stridefire-frontend.vercel.app" // ✅
+                ));
 
         // ✅ Allow all HTTP methods
         config.setAllowedMethods(Arrays.asList(
