@@ -13,6 +13,8 @@ import org.springframework.security.web.authentication
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2SuccessHandler
@@ -44,24 +46,36 @@ public class OAuth2SuccessHandler
         System.out.println("====================");
 
         // Step 2 — Find or create user via service
-        User user = userService.findOrCreateGoogleUser(email, name);
+        User user = userService
+                .findOrCreateGoogleUser(email, name);
 
         // Step 3 — Generate JWT token
         String token = jwtUtil.generateToken(
                 user.getEmail(), user.getRole());
 
-        // Step 4 — Build redirect URL
-        String redirectUrl = "http://localhost:5173"
+        // ✅ Step 4 — Get frontend URL from env
+        String frontendUrl =
+                System.getenv("FRONTEND_URL") != null
+                        ? System.getenv("FRONTEND_URL")
+                        : "http://localhost:5173";
+
+        // ✅ Step 5 — Build redirect URL
+        String redirectUrl = frontendUrl
                 + "/auth/callback"
                 + "?token=" + token
-                + "&name=" + user.getName()
-                + "&email=" + user.getEmail()
+                + "&name=" + URLEncoder.encode(
+                user.getName(),
+                StandardCharsets.UTF_8)
+                + "&email=" + URLEncoder.encode(
+                user.getEmail(),
+                StandardCharsets.UTF_8)
                 + "&role=" + user.getRole()
                 + "&userId=" + user.getId();
 
-        System.out.println("Redirect → " + redirectUrl);
+        System.out.println("Redirect → "
+                + redirectUrl);
 
-        // Step 5 — Redirect to React frontend
+        // Step 6 — Redirect to React frontend
         response.sendRedirect(redirectUrl);
     }
 }
