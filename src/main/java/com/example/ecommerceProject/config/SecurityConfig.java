@@ -40,7 +40,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(
                 Arrays.asList(
                         "http://localhost:5173",
-                        "https://stridefire-frontend.vercel.app" // ✅
+                        "https://stride-fire-ecommerce-frontend.vercel.app" // ✅
                 ));
 
         // ✅ Allow all HTTP methods
