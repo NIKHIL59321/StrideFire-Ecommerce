@@ -36,14 +36,14 @@ public class SecurityConfig {
         CorsConfiguration config =
                 new CorsConfiguration();
 
-        // ✅ Allow React frontend
+        //  Allow React frontend
         config.setAllowedOrigins(
                 Arrays.asList(
                         "http://localhost:5173",
                         "https://stride-fire-ecommerce-frontend.vercel.app" // ✅
                 ));
 
-        // ✅ Allow all HTTP methods
+        //  Allow all HTTP methods
         config.setAllowedMethods(Arrays.asList(
                 "GET",
                 "POST",
@@ -52,7 +52,7 @@ public class SecurityConfig {
                 "OPTIONS",
                 "PATCH"));
 
-        // ✅ Allow all required headers
+        //  Allow all required headers
         config.setAllowedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
@@ -62,14 +62,14 @@ public class SecurityConfig {
                 "Access-Control-Request-Method",
                 "Access-Control-Request-Headers"));
 
-        // ✅ Expose Authorization header
+        //  Expose Authorization header
         config.setExposedHeaders(
                 List.of("Authorization"));
 
-        // ✅ Allow credentials
+        //  Allow credentials
         config.setAllowCredentials(true);
 
-        // ✅ Cache preflight for 1 hour
+        //  Cache preflight for 1 hour
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
@@ -92,9 +92,9 @@ public class SecurityConfig {
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
-                                SessionCreationPolicy.IF_REQUIRED))
+                                SessionCreationPolicy.ALWAYS))
 
-                // ✅ Handle 401
+                //  Handle 401
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(
                                 (request, response, authException) -> {
@@ -111,7 +111,7 @@ public class SecurityConfig {
                                                     .writeValueAsString(error));
                                 })
 
-                        // ✅ Handle 403
+                        //  Handle 403
                         .accessDeniedHandler(
                                 (request, response, accessDeniedException) -> {
                                     response.setStatus(
@@ -130,21 +130,22 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // ✅ Public routes
+                        //  Public routes
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/login/oauth2/**").permitAll()
+                        .requestMatchers("/auth/callback").permitAll()
 
-                        // ✅ Public GET products
+                        //  Public GET products
                         .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                        // ✅ Admin only
+                        //  Admin only
                         .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
 
-                        // ✅ Protected routes
+                        //  Protected routes
                         .requestMatchers("/api/cart/**").authenticated()
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/payment/**").authenticated()
@@ -153,8 +154,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // ✅ OAuth2 Login
-                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler))
+                // OAuth2 Login
+                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler)
+                        .authorizationEndpoint(auth -> auth
+                                .baseUri("/oauth2/authorization")
+                        )
+                        .redirectionEndpoint(redir -> redir
+                                .baseUri("/login/oauth2/code/*")
+                        )
+                )
 
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
