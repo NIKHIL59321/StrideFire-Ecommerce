@@ -32,6 +32,7 @@ public class OAuth2SuccessHandler
             HttpServletResponse response,
             Authentication authentication)
             throws IOException {
+        System.out.println("=== OAuth2SuccessHandler CALLED ===");
 
         // Step 1 — Get user info from Google
         OAuth2User oAuth2User =
@@ -53,13 +54,13 @@ public class OAuth2SuccessHandler
         String token = jwtUtil.generateToken(
                 user.getEmail(), user.getRole());
 
-        // ✅ Step 4 — Get frontend URL from env
+        //  Step 4 — Get frontend URL from env
         String frontendUrl =
                 System.getenv("FRONTEND_URL") != null
                         ? System.getenv("FRONTEND_URL")
                         : "http://localhost:5173";
 
-        // ✅ Step 5 — Build redirect URL
+        //  Step 5 — Build redirect URL
         String redirectUrl = frontendUrl
                 + "/auth/callback"
                 + "?token=" + token
